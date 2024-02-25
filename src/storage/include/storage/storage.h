@@ -167,6 +167,8 @@ class Storage {
   Storage();
   ~Storage();
 
+  enum CompactionStrategy { FULL_COMPACTION = 1, LONGEST_NOT_COMPACTION = 2 }; 
+
   Status Open(const StorageOptions& storage_options, const std::string& db_path);
 
   Status GetStartKey(const DataType& dtype, int64_t cursor, std::string* start_key);
@@ -1072,6 +1074,13 @@ class Storage {
   Status DoCompact(const DataType& type);
   Status DoCompactRange(const DataType& type, const std::string& start, const std::string& end);
 
+  void SetNumSstDocompactOnce(int num_sst_docompact_once);
+  void SetForceCompactFileAgeSeconds(int force_compact_file_age_seconds);
+  void SetForceCompactMinDeleteRatio(int force_compact_min_delete_ratio);
+  void SetDontCompactSstCreatedInSeconds(int dont_compact_sst_created_in_seconds);
+  void SetBestDeleteMinRatio(int best_delete_min_ratio);
+  void SetCompactionStrategy(std::string compaction_strategy);
+
   Status SetMaxCacheStatisticKeys(uint32_t max_cache_statistic_keys);
   Status SetSmallCompactionThreshold(uint32_t small_compaction_threshold);
   Status SetSmallCompactionDurationThreshold(uint32_t small_compaction_duration_threshold);
@@ -1103,6 +1112,7 @@ class Storage {
   std::unique_ptr<RedisLists> lists_db_;
   std::unique_ptr<RedisStreams> streams_db_;
   std::atomic<bool> is_opened_ = false;
+  CompactionStrategy compaction_strategy_;
 
   std::unique_ptr<LRUCache<std::string, std::string>> cursors_store_;
 

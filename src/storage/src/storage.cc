@@ -1669,22 +1669,64 @@ Status Storage::DoCompact(const DataType& type) {
   Status s;
   if (type == kStrings) {
     current_task_type_ = Operation::kCleanStrings;
-    s = strings_db_->CompactRange(nullptr, nullptr);
+    switch (compaction_strategy_) {
+    case FULL_COMPACTION:
+      strings_db_->FullCompact();
+      break;
+    case LONGEST_NOT_COMPACTION:
+      strings_db_->LongestNotCompactiontSstCompact();
+      break;
+    }
   } else if (type == kHashes) {
     current_task_type_ = Operation::kCleanHashes;
-    s = hashes_db_->CompactRange(nullptr, nullptr);
+    switch (compaction_strategy_) {
+    case FULL_COMPACTION:
+      hashes_db_->FullCompact();
+      break;
+    case LONGEST_NOT_COMPACTION:
+      hashes_db_->LongestNotCompactiontSstCompact();
+      break;
+    }
   } else if (type == kSets) {
     current_task_type_ = Operation::kCleanSets;
-    s = sets_db_->CompactRange(nullptr, nullptr);
+    switch (compaction_strategy_) {
+    case FULL_COMPACTION:
+      sets_db_->FullCompact();
+      break;
+    case LONGEST_NOT_COMPACTION:
+      sets_db_->LongestNotCompactiontSstCompact();
+      break;
+    }
   } else if (type == kZSets) {
     current_task_type_ = Operation::kCleanZSets;
-    s = zsets_db_->CompactRange(nullptr, nullptr);
+    switch (compaction_strategy_) {
+    case FULL_COMPACTION:
+      zsets_db_->FullCompact();
+      break;
+    case LONGEST_NOT_COMPACTION:
+      zsets_db_->LongestNotCompactiontSstCompact();
+      break;
+    }
   } else if (type == kLists) {
     current_task_type_ = Operation::kCleanLists;
-    s = lists_db_->CompactRange(nullptr, nullptr);
+    switch (compaction_strategy_) {
+    case FULL_COMPACTION:
+      lists_db_->FullCompact();
+      break;
+    case LONGEST_NOT_COMPACTION:
+      lists_db_->LongestNotCompactiontSstCompact();
+      break;
+    }
   } else if (type == kStreams) {
     current_task_type_ = Operation::kCleanStreams;
-    s = streams_db_->CompactRange(nullptr, nullptr);
+    switch (compaction_strategy_) {
+    case FULL_COMPACTION:
+      streams_db_->FullCompact();
+      break;
+    case LONGEST_NOT_COMPACTION:
+      streams_db_->LongestNotCompactiontSstCompact();
+      break;
+    }
   } else {
     current_task_type_ = Operation::kCleanAll;
     s = strings_db_->CompactRange(nullptr, nullptr);
@@ -1745,6 +1787,60 @@ Status Storage::DoCompactRange(const DataType& type, const std::string& start, c
     s = streams_db_->CompactRange(&slice_data_begin, &slice_data_end, kData);
   }
   return s;
+}
+
+void Storage::SetNumSstDocompactOnce(int num_sst_docompact_once) {
+  strings_db_->SetNumSstDocompactOnce(num_sst_docompact_once);
+  hashes_db_->SetNumSstDocompactOnce(num_sst_docompact_once);
+  sets_db_->SetNumSstDocompactOnce(num_sst_docompact_once);
+  zsets_db_->SetNumSstDocompactOnce(num_sst_docompact_once);
+  lists_db_->SetNumSstDocompactOnce(num_sst_docompact_once);
+  streams_db_->SetNumSstDocompactOnce(num_sst_docompact_once);
+}
+
+void Storage::SetForceCompactFileAgeSeconds(int force_compact_file_age_seconds) {
+  strings_db_->SetForceCompactFileAgeSeconds(force_compact_file_age_seconds);
+  hashes_db_->SetForceCompactFileAgeSeconds(force_compact_file_age_seconds);
+  sets_db_->SetForceCompactFileAgeSeconds(force_compact_file_age_seconds);
+  zsets_db_->SetForceCompactFileAgeSeconds(force_compact_file_age_seconds);
+  lists_db_->SetForceCompactFileAgeSeconds(force_compact_file_age_seconds);
+  streams_db_->SetForceCompactFileAgeSeconds(force_compact_file_age_seconds);
+}
+
+void Storage::SetForceCompactMinDeleteRatio(int force_compact_min_delete_ratio) {
+  strings_db_->SetForceCompactMinDeleteRatio(force_compact_min_delete_ratio);
+  hashes_db_->SetForceCompactMinDeleteRatio(force_compact_min_delete_ratio);
+  sets_db_->SetForceCompactMinDeleteRatio(force_compact_min_delete_ratio);
+  zsets_db_->SetForceCompactMinDeleteRatio(force_compact_min_delete_ratio);
+  lists_db_->SetForceCompactMinDeleteRatio(force_compact_min_delete_ratio);
+  streams_db_->SetForceCompactMinDeleteRatio(force_compact_min_delete_ratio);
+}
+
+void Storage::SetDontCompactSstCreatedInSeconds(int dont_compact_sst_created_in_seconds) {
+  strings_db_->SetDontCompactSstCreatedInSeconds(dont_compact_sst_created_in_seconds);
+  hashes_db_->SetDontCompactSstCreatedInSeconds(dont_compact_sst_created_in_seconds);
+  sets_db_->SetDontCompactSstCreatedInSeconds(dont_compact_sst_created_in_seconds);
+  zsets_db_->SetDontCompactSstCreatedInSeconds(dont_compact_sst_created_in_seconds);
+  lists_db_->SetDontCompactSstCreatedInSeconds(dont_compact_sst_created_in_seconds);
+  streams_db_->SetDontCompactSstCreatedInSeconds(dont_compact_sst_created_in_seconds);
+}
+
+void Storage::SetBestDeleteMinRatio(int best_delete_min_ratio) {
+  strings_db_->SetBestDeleteMinRatio(best_delete_min_ratio);
+  hashes_db_->SetBestDeleteMinRatio(best_delete_min_ratio);
+  sets_db_->SetBestDeleteMinRatio(best_delete_min_ratio);
+  zsets_db_->SetBestDeleteMinRatio(best_delete_min_ratio);
+  lists_db_->SetBestDeleteMinRatio(best_delete_min_ratio);
+  streams_db_->SetBestDeleteMinRatio(best_delete_min_ratio);
+}
+
+void Storage::SetCompactionStrategy(std::string compaction_strategy) {
+  if (compaction_strategy.empty() || compaction_strategy == "full_compaction") {
+    compaction_strategy_ = FULL_COMPACTION;
+  }
+  if (compaction_strategy == "longest_not_COMPACTION") {
+    compaction_strategy_ = LONGEST_NOT_COMPACTION;
+  }
 }
 
 Status Storage::SetMaxCacheStatisticKeys(uint32_t max_cache_statistic_keys) {

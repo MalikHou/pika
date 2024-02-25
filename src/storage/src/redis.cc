@@ -3,8 +3,11 @@
 //  LICENSE file in the root directory of this source tree. An additional grant
 //  of patent rights can be found in the PATENTS file in the same directory.
 
-#include "src/redis.h"
 #include <sstream>
+
+#include "src/redis.h"
+#include "pstd/include/pstd_string.h"
+#include <glog/logging.h>
 
 namespace storage {
 
@@ -197,6 +200,112 @@ void Redis::SetCompactRangeOptions(const bool is_canceled) {
   } else {
     default_compact_range_options_.canceled->store(is_canceled);
   } 
+}
+
+Status Redis::FullCompact(const ColumnFamilyType& type = kMetaAndData) {
+  return db_->CompactRange(default_compact_range_options_, nullptr, nullptr);
+}
+
+Status Redis::LongestNotCompactiontSstCompact(const ColumnFamilyType& type = kMetaAndData) {
+  rocksdb::TablePropertiesCollection props;
+  Status status = db_->GetPropertiesOfAllTables(&props);
+  if (!status.ok()) {
+    return Status::Corruption("LongestNotCompactiontSstCompact GetPropertiesOfAllTables:" + status.ToString());
+  }
+
+  // The main goal of compaction was reclaimed the disk space and removed
+  // the tombstone. It seems that compaction scheduler was unnecessary here when
+  // the live files was too few, Hard code to 1 here.
+  if (props.size() <= 1) {
+      return Status::Corruption("LongestNotCompactiontSstCompact only one file");
+  }
+
+  size_t max_files_to_compact = 1;
+  if (props.size() / num_sst_docompact_once_ > max_files_to_compact) {
+      max_files_to_compact = props.size() / num_sst_docompact_once_;
+  }
+
+  int64_t now =
+      std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
+          .count();
+
+  auto force_compact_min_ratio = static_cast<double>(force_compact_min_delete_ratio_) / 100.0;
+  auto best_delete_min_ratio = static_cast<double>(best_delete_min_ratio_) / 100.0;
+
+  std::string best_filename;
+  double best_delete_ratio = 0;
+  int64_t total_keys = 0, deleted_keys = 0;
+  rocksdb::Slice start_key, stop_key, best_start_key, best_stop_key;
+  for (const auto& iter : props) {
+      uint64_t file_creation_time = iter.second->file_creation_time;
+      if (file_creation_time == 0) {
+          // Fallback to the file Modification time to prevent repeatedly compacting the same file,
+          // file_creation_time is 0 which means the unknown condition in rocksdb
+          auto s = rocksdb::Env::Default()->GetFileModificationTime(iter.first, &file_creation_time);
+          if (!s.ok()) {
+              LOG(INFO) << "Failed to get the file creation time: " << iter.first
+                         << ", err: " << s.ToString();
+              continue;
+          }
+      }
+
+      for (const auto& property_iter : iter.second->user_collected_properties) {
+          if (property_iter.first == "total_keys") {
+              if (!pstd::string2int(property_iter.second.c_str(), property_iter.second.length(), &total_keys)) {
+                  LOG(ERROR) << "Parse total_keys error";
+                  continue;
+              }
+          }
+          if (property_iter.first == "deleted_keys") {
+              if (!pstd::string2int(property_iter.second.c_str(), property_iter.second.length(), &deleted_keys)) {
+                  LOG(ERROR) << "Parse deleted_keys error";
+                  continue;
+              }
+          }
+          if (property_iter.first == "start_key") {
+              start_key = property_iter.second;
+          }
+          if (property_iter.first == "stop_key") {
+              stop_key = property_iter.second;
+          }
+      }
+
+      if (start_key.empty() || stop_key.empty()) {
+          continue;
+      }
+      double delete_ratio = static_cast<double>(deleted_keys) / static_cast<double>(total_keys);
+
+      // pick the file according to force compact policy
+      if (file_creation_time < static_cast<uint64_t>(now/1000 - force_compact_file_age_seconds_) &&
+          delete_ratio >= force_compact_min_ratio) {
+          auto s = db_->CompactRange(default_compact_range_options_, &start_key, &stop_key);
+          max_files_to_compact--;
+          continue;
+      }
+
+      // don't compact the SST created in x `dont_compact_sst_created_in_seconds_`.
+      if (file_creation_time > static_cast<uint64_t>(now - dont_compact_sst_created_in_seconds_)) {
+          continue;
+      }
+
+      // pick the file which has highest delete ratio
+      if (total_keys != 0 && delete_ratio > best_delete_ratio) {
+          best_delete_ratio = delete_ratio;
+          best_filename     = iter.first;
+          best_start_key    = start_key;
+          start_key.clear();
+          best_stop_key = stop_key;
+          stop_key.clear();
+      }
+  }
+  
+  if (best_delete_ratio > best_delete_min_ratio && !best_start_key.empty() && !best_stop_key.empty()) {
+      auto s = db_->CompactRange(default_compact_range_options_, &best_start_key, &best_stop_key);
+      if (!s.ok()) {
+          LOG(ERROR) << "Failed to do compaction: " << s.ToString();
+      }
+  }
+  return Status::OK();
 }
 
 }  // namespace storage

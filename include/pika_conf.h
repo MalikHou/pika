@@ -96,6 +96,34 @@ class PikaConf : public pstd::BaseConf {
     std::shared_lock l(rwlock_);
     return disable_auto_compactions_;
   }
+
+  int num_sst_docompact_once() {
+    std::shared_lock l(rwlock_);
+    return compact_param_.num_sst_docompact_once_;
+  }
+  int force_compact_file_age_seconds() {
+    std::shared_lock l(rwlock_);
+    return compact_param_.force_compact_file_age_seconds_;
+  }
+
+  int force_compact_min_delete_ratio() {
+    std::shared_lock l(rwlock_);
+    return compact_param_.force_compact_min_delete_ratio_;
+  }
+
+  int dont_compact_sst_created_in_seconds() {
+    std::shared_lock l(rwlock_);
+    return compact_param_.dont_compact_sst_created_in_seconds_;
+  }
+
+  int best_delete_min_ratio() {
+    std::shared_lock l(rwlock_);
+    return compact_param_.best_delete_min_ratio_;
+  }
+  std::string compaction_strategy() {
+    std::shared_lock l(rwlock_);
+    return compact_param_.compaction_strategy_;
+  }
   int64_t least_resume_free_disk_size() {
     std::shared_lock l(rwlock_);
     return least_free_disk_to_resume_;
@@ -669,9 +697,23 @@ class PikaConf : public pstd::BaseConf {
   std::string log_level_;
   std::string db_path_;
   std::string db_sync_path_;
+
+  // compact
   std::string compact_cron_;
   std::string compact_interval_;
+  struct CompactParam{
+    int num_sst_docompact_once_;
+    int force_compact_file_age_seconds_;
+    int force_compact_min_delete_ratio_;
+    int dont_compact_sst_created_in_seconds_;
+    int best_delete_min_ratio_;
+    std::string compaction_strategy_;
+  };
+
+  CompactParam compact_param_;
   bool disable_auto_compactions_ = false;
+  
+  
   int64_t resume_check_interval_ = 60; // seconds
   int64_t least_free_disk_to_resume_ = 268435456; // 256 MB
   double min_check_resume_ratio_ = 0.7;

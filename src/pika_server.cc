@@ -313,6 +313,12 @@ void PikaServer::InitDBStruct() {
     std::string name = db.db_name;
     std::shared_ptr<DB> db_ptr = std::make_shared<DB>(name, db_path, log_path);
     db_ptr->Init();
+    db_ptr->SetNumSstDocompactOnce(g_pika_conf->num_sst_docompact_once());
+    db_ptr->SetForceCompactFileAgeSeconds(g_pika_conf->force_compact_file_age_seconds());
+    db_ptr->SetForceCompactMinDeleteRatio(g_pika_conf->force_compact_min_delete_ratio());
+    db_ptr->SetDontCompactSstCreatedInSeconds(g_pika_conf->dont_compact_sst_created_in_seconds());
+    db_ptr->SetBestDeleteMinRatio(g_pika_conf->best_delete_min_ratio());
+    db_ptr->SetCompactionStrategy(g_pika_conf->compaction_strategy());
     dbs_.emplace(name, db_ptr);
   }
 }

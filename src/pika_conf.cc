@@ -247,6 +247,33 @@ int PikaConf::Load() {
     }
   }
 
+  GetConfInt("num_sst_docompact_once", &compact_param_.num_sst_docompact_once_);
+  if (compact_param_.num_sst_docompact_once_ < 1) {
+    compact_param_.num_sst_docompact_once_ = 1;
+  }
+
+  GetConfInt("force_compact_file_age_seconds", &compact_param_.force_compact_file_age_seconds_);
+  if (compact_param_.force_compact_file_age_seconds_ < 300) {
+    compact_param_.force_compact_file_age_seconds_ = 300;
+  }
+
+  GetConfInt("force_compact_min_delete_ratio", &compact_param_.force_compact_min_delete_ratio_);
+  if (compact_param_.force_compact_min_delete_ratio_ < 10) {
+    compact_param_.force_compact_min_delete_ratio_ = 10;
+  }
+
+  GetConfInt("dont_compact_sst_created_in_seconds", &compact_param_.dont_compact_sst_created_in_seconds_);
+  if (compact_param_.force_compact_min_delete_ratio_ < 300) {
+    compact_param_.force_compact_min_delete_ratio_ = 300;
+  }
+
+  GetConfInt("best_delete_min_ratio", &compact_param_.best_delete_min_ratio_);
+  if (compact_param_.best_delete_min_ratio_ < 10) {
+    compact_param_.best_delete_min_ratio_ = 10;
+  }
+
+  GetConfStr("compaction_strategy", &compact_param_.compaction_strategy_);
+
   // least-free-disk-resume-size
   GetConfInt64Human("least-free-disk-resume-size", &least_free_disk_to_resume_);
   if (least_free_disk_to_resume_ <= 0) {

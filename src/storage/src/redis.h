@@ -100,6 +100,9 @@ class Redis {
   virtual Status ScanKeys(const std::string& pattern, std::vector<std::string>* keys) = 0;
   virtual Status PKPatternMatchDel(const std::string& pattern, int32_t* ret) = 0;
 
+  virtual Status FullCompact(const ColumnFamilyType& type = kMetaAndData);
+  virtual Status LongestNotCompactiontSstCompact(const ColumnFamilyType& type = kMetaAndData);
+
   // Keys Commands
   virtual Status Expire(const Slice& key, int32_t ttl) = 0;
   virtual Status Del(const Slice& key) = 0;
@@ -117,6 +120,22 @@ class Redis {
   std::vector<rocksdb::ColumnFamilyHandle*> GetHandles(){ return handles_;};
   void GetRocksDBInfo(std::string &info, const char *prefix);
 
+  void SetNumSstDocompactOnce(int num_sst_docompact_once) {
+    num_sst_docompact_once_ = num_sst_docompact_once;
+  }
+  void SetForceCompactFileAgeSeconds(int force_compact_file_age_seconds) {
+    force_compact_file_age_seconds_ = force_compact_file_age_seconds;
+  }
+  void SetForceCompactMinDeleteRatio(int force_compact_min_delete_ratio) {
+    force_compact_min_delete_ratio_ = force_compact_min_delete_ratio;
+  }
+  void SetDontCompactSstCreatedInSeconds(int dont_compact_sst_created_in_seconds) {
+    dont_compact_sst_created_in_seconds_ = dont_compact_sst_created_in_seconds;
+  }
+  void SetBestDeleteMinRatio(int best_delete_min_ratio) {
+    best_delete_min_ratio_ = best_delete_min_ratio;
+  }
+
  protected:
   Storage* const storage_;
   DataType type_;
@@ -127,6 +146,12 @@ class Redis {
   rocksdb::WriteOptions default_write_options_;
   rocksdb::ReadOptions default_read_options_;
   rocksdb::CompactRangeOptions default_compact_range_options_;
+
+  int num_sst_docompact_once_;
+  int force_compact_file_age_seconds_;
+  int force_compact_min_delete_ratio_;
+  int dont_compact_sst_created_in_seconds_;
+  int best_delete_min_ratio_;
 
   // For Scan
   std::unique_ptr<LRUCache<std::string, std::string>> scan_cursors_store_;

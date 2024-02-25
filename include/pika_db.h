@@ -128,6 +128,30 @@ class DB : public std::enable_shared_from_this<DB>, public pstd::noncopyable {
 
   void SetCompactRangeOptions(const bool is_canceled);
 
+  void SetNumSstDocompactOnce(int num_sst_docompact_once) {
+    storage_->SetNumSstDocompactOnce(num_sst_docompact_once);
+  }
+
+  void SetForceCompactFileAgeSeconds(int force_compact_file_age_seconds) {
+    storage_->SetForceCompactFileAgeSeconds(force_compact_file_age_seconds);
+  }
+
+  void SetForceCompactMinDeleteRatio(int force_compact_min_delete_ratio) {
+    storage_->SetForceCompactMinDeleteRatio(force_compact_min_delete_ratio);
+  }
+
+  void SetDontCompactSstCreatedInSeconds(int dont_compact_sst_created_in_seconds) {
+    storage_->SetDontCompactSstCreatedInSeconds(dont_compact_sst_created_in_seconds);
+  }
+
+  void SetBestDeleteMinRatio(int best_delete_min_ratio) {
+    storage_->SetBestDeleteMinRatio(best_delete_min_ratio);
+  }
+
+  void SetCompactionStrategy(std::string compaction_strategy) {
+    storage_->SetCompactionStrategy(compaction_strategy);
+  }
+
   std::shared_ptr<pstd::lock::LockMgr> LockMgr();
   void DbRWLockWriter();
   void DbRWLockReader();
