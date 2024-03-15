@@ -108,6 +108,34 @@ public:
     std::shared_lock l(rwlock_);
     return compact_interval_;
   }
+  int max_subcompactions() {
+    std::lock_guard l(rwlock_);
+    return max_subcompactions_;
+  }
+  int compact_every_num_of_files() {
+    std::shared_lock l(rwlock_);
+    return compact_every_num_of_files_;
+  }
+  int force_compact_file_age_seconds() {
+    std::shared_lock l(rwlock_);
+    return force_compact_file_age_seconds_;
+  }
+  int force_compact_min_delete_ratio() {
+    std::shared_lock l(rwlock_);
+    return force_compact_min_delete_ratio_;
+  }
+  int dont_compact_sst_created_in_seconds() {
+    std::shared_lock l(rwlock_);
+    return dont_compact_sst_created_in_seconds_;
+  }
+  int best_delete_min_ratio() {
+    std::shared_lock l(rwlock_);
+    return best_delete_min_ratio_;
+  }
+  CompactionStrategy compaction_strategy() {
+    std::shared_lock l(rwlock_);
+    return compaction_strategy_;
+  }
   bool disable_auto_compactions() {
     std::shared_lock l(rwlock_);
     return disable_auto_compactions_;
@@ -127,6 +155,18 @@ public:
   int64_t write_buffer_size() {
     std::shared_lock l(rwlock_);
     return write_buffer_size_;
+  }
+  int level0_stop_writes_trigger() {
+    std::shared_lock l(rwlock_);
+    return level0_stop_writes_trigger_;
+  }
+  int level0_slowdown_writes_trigger() {
+    std::shared_lock l(rwlock_);
+    return level0_slowdown_writes_trigger_;
+  }
+  int level0_file_num_compaction_trigger() {
+    std::shared_lock l(rwlock_);
+    return level0_file_num_compaction_trigger_;
   }
   int64_t arena_block_size() {
     std::shared_lock l(rwlock_);
@@ -575,30 +615,6 @@ public:
     TryPushDiffCommands("disable_auto_compactions", value);
     disable_auto_compactions_ = value == "true";
   }
-  int num_sst_docompact_once() {
-    std::shared_lock l(rwlock_);
-    return num_sst_docompact_once_;
-  }
-  int force_compact_file_age_seconds() {
-    std::shared_lock l(rwlock_);
-    return force_compact_file_age_seconds_;
-  }
-  int force_compact_min_delete_ratio() {
-    std::shared_lock l(rwlock_);
-    return force_compact_min_delete_ratio_;
-  }
-  int dont_compact_sst_created_in_seconds() {
-    std::shared_lock l(rwlock_);
-    return dont_compact_sst_created_in_seconds_;
-  }
-  int best_delete_min_ratio() {
-    std::shared_lock l(rwlock_);
-    return best_delete_min_ratio_;
-  }
-  CompactionStrategy compaction_strategy() {
-    std::shared_lock l(rwlock_);
-    return compaction_strategy_;
-  }
   void SetLeastResumeFreeDiskSize(const int64_t& value) {
     std::lock_guard l(rwlock_);
     TryPushDiffCommands("least-free-disk-resume-size", std::to_string(value));
@@ -732,8 +748,10 @@ public:
   // compact
   std::string compact_cron_;
   std::string compact_interval_;
+  int max_subcompactions_ = 1;
   bool disable_auto_compactions_ = false;
-  int num_sst_docompact_once_;
+  // for obd_compact
+  int compact_every_num_of_files_;
   int force_compact_file_age_seconds_;
   int force_compact_min_delete_ratio_;
   int dont_compact_sst_created_in_seconds_;
@@ -744,6 +762,9 @@ public:
   int64_t least_free_disk_to_resume_ = 268435456; // 256 MB
   double min_check_resume_ratio_ = 0.7;
   int64_t write_buffer_size_ = 0;
+  int level0_stop_writes_trigger_ =  36;
+  int level0_slowdown_writes_trigger_ = 20;
+  int level0_file_num_compaction_trigger_ = 4;
   int64_t arena_block_size_ = 0;
   int64_t slotmigrate_thread_num_ = 0;
   int64_t thread_migrate_keys_num_ = 0;

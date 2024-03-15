@@ -13,6 +13,7 @@
 #include "src/base_filter.h"
 #include "src/zsets_filter.h"
 #include "pstd/include/pstd_string.h"
+#include "pstd/include/pstd_defer.h"
 
 namespace storage {
 const rocksdb::Comparator* ListsDataKeyComparator() {
@@ -265,6 +266,16 @@ void SelectColumnFamilyHandles(const DataType &option_type, const ColumnFamilyTy
 }
 
 Status Redis::CompactRange(const DataType& option_type, const rocksdb::Slice* begin, const rocksdb::Slice* end, std::vector<Status>* compact_result_vec, const ColumnFamilyType& type) {
+  bool no_compact = false;
+  bool to_comapct = true;
+  if (!in_compact_flag_.compare_exchange_weak(no_compact, to_comapct, std::memory_order_relaxed, std::memory_order_relaxed)) {
+    return Status::Corruption("compact running");
+  }
+
+  DEFER {
+    in_compact_flag_.store(false);
+  };
+  
   std::vector<int> handleIdxVec;
   SelectColumnFamilyHandles(option_type, type, handleIdxVec);
   if (handleIdxVec.size() == 0) {
@@ -293,6 +304,15 @@ Status Redis::FullCompact(std::vector<Status>* compact_result_vec, const ColumnF
 }
 
 Status Redis::LongestNotCompactiontSstCompact(const DataType &option_type, std::vector<Status>* compact_result_vec, const ColumnFamilyType &type) {
+  bool no_compact = false;
+  bool to_comapct = true;
+  if (!in_compact_flag_.compare_exchange_weak(no_compact, to_comapct, std::memory_order_relaxed, std::memory_order_relaxed)) {
+    return Status::Corruption("compact running");
+  }
+
+  DEFER {
+    in_compact_flag_.store(false);
+  };
   std::vector<int> handleIdxVec;
   SelectColumnFamilyHandles(option_type, type, handleIdxVec);
   if (handleIdxVec.size() == 0) {
@@ -326,8 +346,8 @@ Status Redis::LongestNotCompactiontSstCompact(const DataType &option_type, std::
   
     size_t max_files_to_compact = 1;
     const StorageOptions& storageOptions = storage_->GetStorageOptions();
-    if (props.size() / storageOptions.compact_param_.num_sst_docompact_once_ > max_files_to_compact) {
-        max_files_to_compact = props.size() / storageOptions.compact_param_.num_sst_docompact_once_;
+    if (props.size() / storageOptions.compact_param_.compact_every_num_of_files_ > max_files_to_compact) {
+        max_files_to_compact = props.size() / storageOptions.compact_param_.compact_every_num_of_files_;
     }
   
     int64_t now =

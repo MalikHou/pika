@@ -72,7 +72,7 @@ struct StorageOptions {
   size_t small_compaction_duration_threshold = 10000;
   struct CompactParam{
     // for LongestNotCompactiontSstCompact function
-    int num_sst_docompact_once_;
+    int compact_every_num_of_files_;
     int force_compact_file_age_seconds_;
     int force_compact_min_delete_ratio_;
     int dont_compact_sst_created_in_seconds_;

@@ -1377,7 +1377,7 @@ void PikaServer::InitStorageOptions() {
   storage_options_.compact_param_.dont_compact_sst_created_in_seconds_ = g_pika_conf->dont_compact_sst_created_in_seconds();
   storage_options_.compact_param_.force_compact_file_age_seconds_ = g_pika_conf->force_compact_file_age_seconds();
   storage_options_.compact_param_.force_compact_min_delete_ratio_ = g_pika_conf->force_compact_min_delete_ratio();
-  storage_options_.compact_param_.num_sst_docompact_once_ = g_pika_conf->num_sst_docompact_once();
+  storage_options_.compact_param_.compact_every_num_of_files_ = g_pika_conf->compact_every_num_of_files();
 
   // rocksdb blob
   if (g_pika_conf->enable_blob_files()) {
