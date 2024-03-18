@@ -156,6 +156,10 @@ public:
     std::shared_lock l(rwlock_);
     return write_buffer_size_;
   }
+  int min_write_buffer_number_to_merge() {
+    std::shared_lock l(rwlock_);
+    return min_write_buffer_number_to_merge_;
+  }
   int level0_stop_writes_trigger() {
     std::shared_lock l(rwlock_);
     return level0_stop_writes_trigger_;
@@ -762,6 +766,7 @@ public:
   int64_t least_free_disk_to_resume_ = 268435456; // 256 MB
   double min_check_resume_ratio_ = 0.7;
   int64_t write_buffer_size_ = 0;
+  int min_write_buffer_number_to_merge_ = 1;
   int level0_stop_writes_trigger_ =  36;
   int level0_slowdown_writes_trigger_ = 20;
   int level0_file_num_compaction_trigger_ = 4;

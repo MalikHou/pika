@@ -380,6 +380,11 @@ int PikaConf::Load() {
   if (max_write_buffer_num_ <= 0) {
     max_write_buffer_num_ = 2;  // 1 for immutable memtable, 1 for mutable memtable
   }
+  
+  GetConfInt("min-write-buffer-number-to-merge", &min_write_buffer_number_to_merge_);
+  if (min_write_buffer_number_to_merge_ < 1) {
+    min_write_buffer_number_to_merge_ = 1;  // 1 for immutable memtable to merge
+  }
 
   // max_client_response_size
   GetConfInt64Human("max-client-response-size", &max_client_response_size_);
