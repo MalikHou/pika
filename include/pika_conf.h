@@ -29,6 +29,12 @@ const uint32_t configReplicationIDSize = 50;
 // global class, class members well initialized
 class PikaConf : public pstd::BaseConf {
  public:
+  enum CompactionStrategy {
+    FullCompact,
+    OldestOrBestDeleteRatioSstCompact
+  };
+
+public:
   PikaConf(const std::string& path);
   ~PikaConf() override = default;
 
@@ -102,6 +108,34 @@ class PikaConf : public pstd::BaseConf {
     std::shared_lock l(rwlock_);
     return compact_interval_;
   }
+  int max_subcompactions() {
+    std::lock_guard l(rwlock_);
+    return max_subcompactions_;
+  }
+  int compact_every_num_of_files() {
+    std::shared_lock l(rwlock_);
+    return compact_every_num_of_files_;
+  }
+  int force_compact_file_age_seconds() {
+    std::shared_lock l(rwlock_);
+    return force_compact_file_age_seconds_;
+  }
+  int force_compact_min_delete_ratio() {
+    std::shared_lock l(rwlock_);
+    return force_compact_min_delete_ratio_;
+  }
+  int dont_compact_sst_created_in_seconds() {
+    std::shared_lock l(rwlock_);
+    return dont_compact_sst_created_in_seconds_;
+  }
+  int best_delete_min_ratio() {
+    std::shared_lock l(rwlock_);
+    return best_delete_min_ratio_;
+  }
+  CompactionStrategy compaction_strategy() {
+    std::shared_lock l(rwlock_);
+    return compaction_strategy_;
+  }
   bool disable_auto_compactions() {
     std::shared_lock l(rwlock_);
     return disable_auto_compactions_;
@@ -121,6 +155,22 @@ class PikaConf : public pstd::BaseConf {
   int64_t write_buffer_size() {
     std::shared_lock l(rwlock_);
     return write_buffer_size_;
+  }
+  int min_write_buffer_number_to_merge() {
+    std::shared_lock l(rwlock_);
+    return min_write_buffer_number_to_merge_;
+  }
+  int level0_stop_writes_trigger() {
+    std::shared_lock l(rwlock_);
+    return level0_stop_writes_trigger_;
+  }
+  int level0_slowdown_writes_trigger() {
+    std::shared_lock l(rwlock_);
+    return level0_slowdown_writes_trigger_;
+  }
+  int level0_file_num_compaction_trigger() {
+    std::shared_lock l(rwlock_);
+    return level0_file_num_compaction_trigger_;
   }
   int64_t arena_block_size() {
     std::shared_lock l(rwlock_);
@@ -706,13 +756,28 @@ class PikaConf : public pstd::BaseConf {
   std::string db_path_;
   int db_instance_num_ = 0;
   std::string db_sync_path_;
+
+  // compact
   std::string compact_cron_;
   std::string compact_interval_;
+  int max_subcompactions_ = 1;
   bool disable_auto_compactions_ = false;
+  // for obd_compact
+  int compact_every_num_of_files_;
+  int force_compact_file_age_seconds_;
+  int force_compact_min_delete_ratio_;
+  int dont_compact_sst_created_in_seconds_;
+  int best_delete_min_ratio_;
+  CompactionStrategy compaction_strategy_;
+
   int64_t resume_check_interval_ = 60; // seconds
   int64_t least_free_disk_to_resume_ = 268435456; // 256 MB
   double min_check_resume_ratio_ = 0.7;
   int64_t write_buffer_size_ = 0;
+  int min_write_buffer_number_to_merge_ = 1;
+  int level0_stop_writes_trigger_ =  36;
+  int level0_slowdown_writes_trigger_ = 20;
+  int level0_file_num_compaction_trigger_ = 4;
   int64_t arena_block_size_ = 0;
   int64_t slotmigrate_thread_num_ = 0;
   int64_t thread_migrate_keys_num_ = 0;

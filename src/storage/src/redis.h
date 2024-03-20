@@ -105,7 +105,11 @@ class Redis {
   Status Open(const StorageOptions& storage_options, const std::string& db_path);
 
   virtual Status CompactRange(const DataType& option_type, const rocksdb::Slice* begin, const rocksdb::Slice* end,
-                              const ColumnFamilyType& type = kMetaAndData);
+                              std::vector<Status>* compact_result_vec, const ColumnFamilyType& type = kMetaAndData);
+  
+  virtual Status FullCompact(std::vector<Status>* compact_result_vec, const ColumnFamilyType &type = kMetaAndData);
+
+  virtual Status LongestNotCompactiontSstCompact(const DataType &option_type, std::vector<Status>* compact_result_vec, const ColumnFamilyType &type = kMetaAndData);
 
   virtual Status GetProperty(const std::string& property, uint64_t* out);
 
@@ -428,6 +432,7 @@ private:
   rocksdb::WriteOptions default_write_options_;
   rocksdb::ReadOptions default_read_options_;
   rocksdb::CompactRangeOptions default_compact_range_options_;
+  std::atomic<bool> in_compact_flag_;
 
   // For Scan
   std::unique_ptr<LRUCache<std::string, std::string>> scan_cursors_store_;
