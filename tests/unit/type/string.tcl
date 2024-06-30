@@ -101,6 +101,7 @@ start_server {tags {"string"}} {
         assert_equal 1 [r setnx x 20]
         assert_equal 20 [r get x]
     }
+
 # Pika does not support the getex command
    # test "GETEX EX option" {
    #     r del foo
@@ -310,11 +311,11 @@ start_server {tags {"string"}} {
    # }
 
 # Keys for multiple data types of Pika can be duplicate
-   # test "SETBIT against key with wrong type" {
-   #     r del mykey
-   #     r lpush mykey "foo"
-   #     assert_error "WRONGTYPE*" {r setbit mykey 0 1}
-   # }
+    test "SETBIT against key with wrong type" {
+        r del mykey
+        r lpush mykey "foo"
+        assert_error "WRONGTYPE*" {r setbit mykey 0 1}
+    }
 
     test "SETBIT with out of range bit offset" {
         r del mykey
@@ -344,7 +345,7 @@ start_server {tags {"string"}} {
             set str [string map {" " 0} [format $fmt $head $bitval $tail]]
 
             r setbit mykey $bitnum $bitval
-           # assert_equal [binary format B* $str] [r get mykey]
+            #assert_equal [binary format B* $str] [r get mykey]
         }
     }
 
@@ -445,21 +446,21 @@ start_server {tags {"string"}} {
     }
 
 # Keys for multiple data types of Pika can be duplicate
-   # test "SETRANGE against key with wrong type" {
-   #     r del mykey
-   #     r lpush mykey "foo"
-   #     assert_error "WRONGTYPE*" {r setrange mykey 0 bar}
-   # }
+    test "SETRANGE against key with wrong type" {
+        r del mykey
+        r lpush mykey "foo"
+        assert_error "WRONGTYPE*" {r setrange mykey 0 bar}
+    }
 
-# Keys for multiple data types of Pika can be duplicate
-   # test "SETRANGE with out of range offset" {
-   #     r del mykey
-   #     assert_error "*maximum allowed size*" {r setrange mykey [expr 512*1024*1024-4] world}
-
-   #     r set mykey "hello"
-   #     assert_error "*out of range*" {r setrange mykey -1 world}
-   #     assert_error "*maximum allowed size*" {r setrange mykey [expr 512*1024*1024-4] world}
-   # }
+# Configuration parameters are not set
+#    test "SETRANGE with out of range offset" {
+#        r del mykey
+#        assert_error "*maximum allowed size*" {r setrange mykey [expr 512*1024*1024-4] world}
+#
+#        r set mykey "hello"
+#        assert_error "*out of range*" {r setrange mykey -1 world}
+#        assert_error "*maximum allowed size*" {r setrange mykey [expr 512*1024*1024-4] world}
+#    }
 
     test "GETRANGE against non-existing key" {
         r del mykey
@@ -467,10 +468,10 @@ start_server {tags {"string"}} {
     }
 
 # Keys for multiple data types of Pika can be duplicate
-   # test "GETRANGE against wrong key type" {
-   #     r lpush lkey1 "list"
-   #     assert_error {WRONGTYPE Operation against a key holding the wrong kind of value*} {r getrange lkey1 0 -1}
-   # }
+    test "GETRANGE against wrong key type" {
+        r lpush lkey1 "list"
+        assert_error {WRONGTYPE Operation against a key holding the wrong kind of value*} {r getrange lkey1 0 -1}
+    }
 
     test "GETRANGE against string value" {
         r set mykey "Hello World"
@@ -546,7 +547,7 @@ if {[string match {*jemalloc*} [s mem_allocator]]} {
         list $v1 $v2 [r get foo]
     } {{} OK 2}
 
-# Bug need Fix
+# Pika does not support the setget command
    # test {Extended SET GET option} {
    #     r del foo
    #     r set foo bar
@@ -555,7 +556,7 @@ if {[string match {*jemalloc*} [s mem_allocator]]} {
    #     list $old_value $new_value
    # } {bar bar2}
 
-# Bug need Fix
+# Pika does not support the setget command
    # test {Extended SET GET option with no previous value} {
    #     r del foo
    #     set old_value [r set foo bar GET]
@@ -563,7 +564,7 @@ if {[string match {*jemalloc*} [s mem_allocator]]} {
    #     list $old_value $new_value
    # } {{} bar}
 
-# Bug need Fix
+# Pika does not support the setget command
    # test {Extended SET GET option with XX} {
    #     r del foo
    #     r set foo bar
@@ -572,7 +573,7 @@ if {[string match {*jemalloc*} [s mem_allocator]]} {
    #     list $old_value $new_value
    # } {bar baz}
 
-# Bug need Fix
+# Pika does not support the setget command
    # test {Extended SET GET option with XX and no previous value} {
    #     r del foo
    #     set old_value [r set foo bar GET XX]
@@ -580,7 +581,7 @@ if {[string match {*jemalloc*} [s mem_allocator]]} {
    #     list $old_value $new_value
    # } {{} {}}
 
-# Bug need Fix
+# Pika does not support the setget command
    # test {Extended SET GET option with NX} {
    #     r del foo
    #     set old_value [r set foo bar GET NX]
@@ -588,7 +589,7 @@ if {[string match {*jemalloc*} [s mem_allocator]]} {
    #     list $old_value $new_value
    # } {{} bar}
 
-# Bug need Fix
+# Pika does not support the setget command
    # test {Extended SET GET option with NX and previous value} {
    #     r del foo
    #     r set foo bar
@@ -597,14 +598,14 @@ if {[string match {*jemalloc*} [s mem_allocator]]} {
    #     list $old_value $new_value
    # } {bar bar}
 
-# Keys for multiple data types of Pika can be duplicate
-  #  test {Extended SET GET with incorrect type should result in wrong type error} {
-  #    r del foo
-  #    r rpush foo waffle
-  #    catch {r set foo bar GET} err1
-  #    assert_equal "waffle" [r rpop foo]
-  #    set err1
-  #  } {*WRONGTYPE*}
+# Pika does not support the setget command
+#    test {Extended SET GET with incorrect type should result in wrong type error} {
+#      r del foo
+#      r rpush foo waffle
+#      catch {r set foo bar GET} err1
+#      assert_equal "waffle" [r rpop foo]
+#      set err1
+#    } {*WRONGTYPE*}
 
     test {Extended SET EX option} {
         r del foo
@@ -618,23 +619,23 @@ if {[string match {*jemalloc*} [s mem_allocator]]} {
        r set foo bar px 10000
        set ttl [r ttl foo]
        assert {$ttl <= 10 && $ttl > 5}
-   }
+  }
 
-# No cause has been confirmed
+# The Set command does not support the ttl setting
    # test "Extended SET EXAT option" {
    #     r del foo
    #     r set foo bar exat [expr [clock seconds] + 10]
    #     assert_range [r ttl foo] 5 10
    # }
 
-# No cause has been confirmed
+# The Set command does not support the ttl setting
    # test "Extended SET PXAT option" {
    #     r del foo
    #     r set foo bar pxat [expr [clock milliseconds] + 10000]
    #     assert_range [r ttl foo] 5 10
    # }
 
-# No cause has been confirmed
+# The Set command does not support the ttl setting
    # test {Extended SET using multiple options at once} {
    #     r set foo val
    #     assert {[r set foo bar xx px 10000] eq {OK}}

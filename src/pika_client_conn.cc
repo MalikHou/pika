@@ -196,7 +196,7 @@ std::shared_ptr<Cmd> PikaClientConn::DoCmd(const PikaCmdArgsType& argv, const st
   if (c_ptr->res().ok() && c_ptr->is_write() && name() != kCmdNameExec) {
     if (c_ptr->name() == kCmdNameFlushdb) {
       auto flushdb = std::dynamic_pointer_cast<FlushdbCmd>(c_ptr);
-      SetTxnFailedFromDBs(flushdb->GetFlushDname());
+      SetTxnFailedFromDBs(flushdb->GetFlushDBname());
     } else if (c_ptr->name() == kCmdNameFlushall) {
       SetAllTxnFailed();
     } else {
@@ -272,7 +272,8 @@ void PikaClientConn::ProcessRedisCmds(const std::vector<net::RedisCmdArgsType>& 
     std::string opt = argvs[0][0];
     pstd::StringToLower(opt);
     bool is_slow_cmd = g_pika_conf->is_slow_cmd(opt);
-    g_pika_server->ScheduleClientPool(&DoBackgroundTask, arg, is_slow_cmd);
+    bool is_admin_cmd = g_pika_conf->is_admin_cmd(opt);
+    g_pika_server->ScheduleClientPool(&DoBackgroundTask, arg, is_slow_cmd, is_admin_cmd);
     return;
   }
   BatchExecRedisCmd(argvs);

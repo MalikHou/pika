@@ -28,6 +28,7 @@ RsyncClient::RsyncClient(const std::string& dir, const std::string& db_name)
       parallel_num_(g_pika_conf->max_rsync_parallel_num()) {
   wo_mgr_.reset(new WaitObjectManager());
   client_thread_ = std::make_unique<RsyncClientThread>(3000, 60, wo_mgr_.get());
+  client_thread_->set_thread_name("RsyncClientThread");
   work_threads_.resize(GetParallelNum());
   finished_work_cnt_.store(0);
 }
@@ -201,7 +202,7 @@ Status RsyncClient::CopyRemoteFile(const std::string& filename, int index) {
       std::shared_ptr<RsyncResponse> resp = nullptr;
       s = wo->Wait(resp);
       if (s.IsTimeout() || resp == nullptr) {
-        LOG(WARNING) << "rsync request timeout";
+        LOG(WARNING) << s.ToString();
         retries++;
         continue;
       }
@@ -360,6 +361,7 @@ Status RsyncClient::PullRemoteMeta(std::string* snapshot_uuid, std::set<std::str
 
     if (resp.get() == nullptr || resp->code() != RsyncService::kOk) {
       s = Status::IOError("kRsyncMeta request failed! db is not exist or doing bgsave");
+      LOG(WARNING) << s.ToString() << ", retries:" << retries;
       sleep(1);
       retries++;
       continue;

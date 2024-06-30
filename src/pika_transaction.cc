@@ -8,10 +8,10 @@
 #include "include/pika_transaction.h"
 #include "include/pika_admin.h"
 #include "include/pika_client_conn.h"
+#include "include/pika_define.h"
 #include "include/pika_list.h"
 #include "include/pika_rm.h"
 #include "include/pika_server.h"
-#include "include/pika_transaction.h"
 #include "src/pstd/include/scope_record_lock.h"
 
 extern std::unique_ptr<PikaServer> g_pika_server;
@@ -80,7 +80,7 @@ void ExecCmd::Do() {
   });
 
   res_.AppendArrayLen(res_vec.size());
-  for (auto &r : res_vec) {
+  for (auto& r : res_vec) {
     res_.AppendStringRaw(r.message());
   }
 }
@@ -103,6 +103,7 @@ void ExecCmd::Execute() {
   SetCmdsVec();
   Lock();
   Do();
+
   Unlock();
   ServeToBLrPopWithKeys();
   list_cmd_.clear();
@@ -219,6 +220,10 @@ void ExecCmd::ServeToBLrPopWithKeys() {
   }
 }
 
+void WatchCmd::Execute() {
+  Do();
+}
+
 void WatchCmd::Do() {
   auto mp = std::map<storage::DataType, storage::Status>{};
   for (const auto& key : keys_) {
@@ -243,10 +248,6 @@ void WatchCmd::Do() {
   }
   client_conn->AddKeysToWatch(db_keys_);
   res_.SetRes(CmdRes::kOk);
-}
-
-void WatchCmd::Execute() {
-  Do();
 }
 
 void WatchCmd::DoInitial() {

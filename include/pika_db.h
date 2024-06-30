@@ -24,11 +24,11 @@ struct KeyScanInfo {
   time_t start_time = 0;
   std::string s_start_time;
   int32_t duration = -3;
-  std::vector<storage::KeyInfo> key_infos;  // the order is strings, hashes, lists, zsets, sets
+  std::vector<storage::KeyInfo> key_infos;  // the order is strings, hashes, lists, zsets, sets, streams
   bool key_scaning_ = false;
   KeyScanInfo() :
                   s_start_time("0"),
-                  key_infos({{0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}})
+                  key_infos({{0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}})
   {}
 };
 
@@ -139,12 +139,9 @@ class DB : public std::enable_shared_from_this<DB>, public pstd::noncopyable {
   void Init();
   bool TryUpdateMasterOffset();
   /*
-   * FlushDB & FlushSubDB use
+   * FlushDB used
    */
-  bool FlushDB();
-  bool FlushSubDB(const std::string& db_name);
   bool FlushDBWithoutLock();
-  bool FlushSubDBWithoutLock(const std::string& db_name);
   bool ChangeDb(const std::string& new_path);
   pstd::Status GetBgSaveUUID(std::string* snapshot_uuid);
   void PrepareRsync();

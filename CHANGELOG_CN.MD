@@ -1,3 +1,72 @@
+# v3.5.4
+
+## New features
+
+- Pika 支持动态调整全量同步限速参数 rsync-timeout-ms 和 throttle-bytes-per-second[#2633](https://github.com/OpenAtomFoundation/pika/pull/2633)@[cheniujh](https://github.com/cheniujh)
+
+- 将 info key space 1 的结果输出至 info all 并展示到监控界面中[#2603](https://github.com/OpenAtomFoundation/pika/pull/2603)@[XiaoLiang2333](https://github.com/XiaoLiang2333)
+
+- Pika 磁盘IO 限速参数支持 OnlyRead、OnlyWrite、ReadAndWrite，默认支持OnlyWrite[#2599](https://github.com/OpenAtomFoundation/pika/pull/2599)@[vacheli](https://github.com/vacheli)
+
+## Improvement
+
+- slotmigrate 添加 go test [#2576](https://github.com/OpenAtomFoundation/pika/pull/2576)@[chejinge](https://github.com/chejinge)
+
+- INFO 命令耗时优化，降低查磁盘频率 [#2554](https://github.com/OpenAtomFoundation/pika/pull/2554) @[wangshao1](https://github.com/wangshao1)
+
+- 对五种基本数据类型命令增加 Redis tcl 测试 [#2527](https://github.com/OpenAtomFoundation/pika/pull/2527)@[Mixficsol](https://github.com/Mixficsol)
+
+## Bugfix
+
+- 修复使用 `Pika Exporter` 时可能会出现 slots 分配不均衡的问题[#2651](https://github.com/OpenAtomFoundation/pika/pull/2651)@[chejinge](https://github.com/chejinge)
+
+- 修复 Codis dashboard 不能正确更新 master 实例状态的问题[#2650](https://github.com/OpenAtomFoundation/pika/pull/2650)@[vacheli](https://github.com/vacheli)
+
+- 修复 Redis 事务 binlog 解析失败导致的主从同步异常问题[#2642](https://github.com/OpenAtomFoundation/pika/pull/2642)@[chejinge](https://github.com/chejinge)
+
+- 修复 `Pika Expoter` 启动时不带参数导致启动失败问题[#2640](https://github.com/OpenAtomFoundation/pika/pull/2640)@[Polaris3003](https://github.com/Polaris3003)
+
+- 修复使用 `Pika Operater` 拉起集群`Codis-proxy` panic 的问题  [#2632](https://github.com/OpenAtomFoundation/pika/pull/2633)@[chejinge](https://github.com/chejinge)
+
+- 修复 CI 编译出的二进制进行自动化测试时 cp 命令失败问题[#2614](https://github.com/OpenAtomFoundation/pika/pull/2614)@[cheniujh](https://github.com/cheniujh)
+
+- 修复变量未初始化导致 cache 启动失败的问题[#2613](https://github.com/OpenAtomFoundation/pika/pull/2613)@[chejinge](https://github.com/chejinge)
+
+- 修复 userpass 和 userblacklist 动态修改参数功能异常问题[#2600](https://github.com/OpenAtomFoundation/pika/pull/2600)@[chejinge](https://github.com/chejinge)
+
+- 修复 scard sscan 结果不一致的问题[#2596](https://github.com/OpenAtomFoundation/pika/pull/2596)@[chejinge](https://github.com/chejinge)
+
+- 修复当 max-rsync-parallel-num 大于4，slave 会在主从复制时 coredump 的问题[#2595](https://github.com/OpenAtomFoundation/pika/pull/2595)@[chejinge](https://github.com/chejinge)
+
+- 调整不常用的线程池线程数，避免因为空跑导致性能损耗[#2590](https://github.com/OpenAtomFoundation/pika/pull/2590) @[chejinge](https://github.com/chejinge)
+
+- 修复 Pika 事务边缘测试 case 不通过的问题[#2586](https://github.com/OpenAtomFoundation/pika/pull/2586) @[chejinge](https://github.com/chejinge)
+
+- 将 cache-model 修改成 cache-mode[#2585](https://github.com/OpenAtomFoundation/pika/pull/2585)@[chejinge](https://github.com/chejinge)
+
+- 修复使用 `info keyspace` 后，`info all` 死锁的问题[#2584](https://github.com/OpenAtomFoundation/pika/pull/2584) @[chejinge](https://github.com/chejinge)
+
+- 修复因修改 zsetscorekeycomparatorimpl 字典序比较熟顺序，导致353 352极端场景不兼容的问题[#2583](https://github.com/OpenAtomFoundation/pika/pull/2583) @[wangshao1](https://github.com/wangshao1)
+
+- 修复 `compact` 死锁的问题 [#2581](https://github.com/OpenAtomFoundation/pika/pull/2581) @[chejinge](https://github.com/chejinge)
+
+- slotmigrate 添加 go test [#2576](https://github.com/OpenAtomFoundation/pika/pull/2576)@[chejinge](https://github.com/chejinge)
+
+- 更新 `Pika Operater` 使用的 pika 版本[#2572](https://github.com/OpenAtomFoundation/pika/pull/2572)@[chejinge](https://github.com/chejinge)
+
+- 修复 config rewrite 后 blockcache 数值异常的问题[#2561](https://github.com/OpenAtomFoundation/pika/pull/2561)@[chejinge](https://github.com/chejinge)
+
+- 修复 slotmigrate 动态修复后值错误的问题[#2548](https://github.com/OpenAtomFoundation/pika/pull/2548)@[chejinge](https://github.com/chejinge)
+
+- 修复 spop 可能会出现主从数据不一致的问题[#2541](https://github.com/OpenAtomFoundation/pika/pull/2541)@[chenbt-hz](https://github.com/chenbt-hz)
+
+- 修复 CloseFd(it->second[i]) 出现越界的问题[#2539](https://github.com/OpenAtomFoundation/pika/pull/2539)@[chejinge](https://github.com/chejinge)
+
+- 修复 Flushall 和 FlushDB 死锁的隐患，并删除 FlushSubDB 接口[#2533](https://github.com/OpenAtomFoundation/pika/pull/2533)@[Mixficsol](https://github.com/Mixficsol)
+
+- 增加参数控制是否清理 tcl 测试后产生的数据文件，防止废弃数据占据磁盘[#2507](https://github.com/OpenAtomFoundation/pika/pull/2507)@[Mixficsol](https://github.com/Mixficsol)
+
+
 # v3.5.3
 
 ## 新特性
@@ -8,7 +77,7 @@
 
 - 在全量复制的过程中，pika 服务的从节点不接收读流量请求 [#2197](https://github.com/OpenAtomFoundation/pika/pull/2197)  @[tedli](https://github.com/tedli)
 
-- Pika cache 新增 bimap数据类型[#2197](https://github.com/OpenAtomFoundation/pika/pull/2197)  @[chejinge](https://github.com/chejinge)
+- Pika cache 新增 bimap 数据类型[#2253](https://github.com/OpenAtomFoundation/pika/pull/2253)  @[chejinge](https://github.com/chejinge)
 
 - 删除 Sharing 模式残留的 Slot，Pika 下只有 DB，一个 Pika 下有多个 DB[#2251](https://github.com/OpenAtomFoundation/pika/pull/2251) @[Mixficsol](https://github.com/Mixficsol)
 
@@ -24,7 +93,7 @@
 
 - Pika 支持大 key 分析工具[#2195](https://github.com/OpenAtomFoundation/pika/pull/2195) @[sjcsjc123](https://github.com/sjcsjc123)
 
-- Pika 支持动态调整 Pika cache 参数[#2197](https://github.com/OpenAtomFoundation/pika/pull/2197)  @[chejinge](https://github.com/chejinge)
+- Pika 支持动态调整 Pika cache 参数[#2253](https://github.com/OpenAtomFoundation/pika/pull/2253) @[chejinge](https://github.com/chejinge)
 
 - 更新 Pika benchmark 工具支持更多的接口压测[#2222](https://github.com/OpenAtomFoundation/pika/pull/2222)@[wangshao1](https://github.com/wangshao1)
 
@@ -40,7 +109,23 @@
 
 - Pika 分布式集群支持自动 failover[#2386](https://github.com/OpenAtomFoundation/pika/pull/2386)@[chengyu-l](https://github.com/chengyu-l)
 
-## bugfix
+- Pika 支持 redis rename-command 功能[#2455](https://github.com/OpenAtomFoundation/pika/pull/2455)@[Mixficsol](https://github.com/Mixficsol)
+
+- 优化 codis slot 迁移速度，支持动态修改迁移线程和速度[#2486](https://github.com/OpenAtomFoundation/pika/pull/2486) @[chejinge](https://github.com/chejinge)
+
+- Pika 支持动态调整 max-conn-rbuf-size 参数[#2434](https://github.com/OpenAtomFoundation/pika/pull/2434) @[HappyUncle](https://github.com/HappyUncle)
+
+- Pika-operator 支持 namespace，可以在不同的 namespace 下部署不同的集群[#2480](https://github.com/OpenAtomFoundation/pika/pull/2480) @[Y-Rookie](https://github.com/Y-Rookie)
+
+- Pika-operator 支持监控指标采集，自动拉起 Pika-expoter[#2451](https://github.com/OpenAtomFoundation/pika/pull/2451) @[chengyu-l](https://github.com/chengyu-l)
+
+- ACL 向前兼容 userblacklist[#2459](https://github.com/OpenAtomFoundation/pika/pull/2459) @[dingxiaoshuai](https://github.com/dingxiaoshuail)
+
+- 丰富了 Pika TCL 测试集[#2497](https://github.com/OpenAtomFoundation/pika/pull/2497) @[Mixficsol](https://github.com/Mixficsol)
+
+- 丰富了 Pika Gotest 测试集[#2502](https://github.com/OpenAtomFoundation/pika/pull/2502) @[Mixficsol](https://github.com/Mixficsol)
+
+## Bugfix
 
 - 修复 Pika 有从节点进行全量复制期间会误删除 dump 文件的问题[#2377](https://github.com/OpenAtomFoundation/pika/pull/2377)@[wangshao1](https://github.com/wangshao1)
 
@@ -78,6 +163,29 @@
 
 - 修复 Codis fe pika 主从角色显示异常的问题[#2387](https://github.com/OpenAtomFoundation/pika/pull/2387)@[chengyu-l](https://github.com/chengyu-l)
 
+- 修复迁移数据后数据不一致的问题[#2485](https://github.com/OpenAtomFoundation/pika/pull/2485)@[chejinge](https://github.com/chejinge)
+
+- 修复dbsize 计算错误问题[#2494](https://github.com/OpenAtomFoundation/pika/pull/2494)@[chejinge](https://github.com/chejinge)
+
+- 修复扩缩容或者 pod 起停后，Codis-dashboard 界面显示不准确的问题[#2475](https://github.com/OpenAtomFoundation/pika/pull/2475)@[chengyu-l](https://github.com/chengyu-l)
+
+- 修复 DB 层重复上锁的问题[#2372](https://github.com/OpenAtomFoundation/pika/pull/2372) @[Mixficsol](https://github.com/Mixficsol)
+
+- 修复全量复制失败后，未做处理导致数据丢失问题[#2439](https://github.com/OpenAtomFoundation/pika/pull/2439)@[wangshao1](https://github.com/wangshao1)
+
+- 修复主从复制过程中，主实例执行 bgsave 过程中，没有正确回应从的同步请求[#2437](https://github.com/OpenAtomFoundation/pika/pull/2437)@[wangshao1](https://github.com/wangshao1)
+
+- 全量复制过程中，添加数据同步状态，明确数据同步进度[#2430](https://github.com/OpenAtomFoundation/pika/pull/2430)@[baixin01](https://github.com/baixin01)
+
+- 修复从库在 Apply binlog 时，没有对操作的 key 加锁，导致数据不一致的问题[#2409](https://github.com/OpenAtomFoundation/pika/pull/2490) @[chejinge](https://github.com/chejinge)
+
+- 修复 codis slot 迁移过程中 master 实例 coredump 的问题[#2415](https://github.com/OpenAtomFoundation/pika/pull/2415) @[chejinge](https://github.com/chejinge)
+
+- 修复在主从复制过程中，删除正在使用的 dump 文件的问题[#2377](https://github.com/OpenAtomFoundation/pika/pull/2377)@[wangshao1](https://github.com/wangshao1)
+
+- 修复主从复制过程中从实例 rsync 响应错误的问题[#2319](https://github.com/OpenAtomFoundation/pika/pull/2319)@[wangshao1](https://github.com/wangshao1)
+
+- 修复主从复制模式下，主实例flushdb后，从实例因死锁而无法访问的问题[#2372](https://github.com/OpenAtomFoundation/pika/pull/2372) @[Mixficsol](https://github.com/Mixficsol)
 
 # v3.5.2
 
@@ -93,7 +201,7 @@
 
 - CI 增加 cache 提升编译速度 [#2088](https://github.com/OpenAtomFoundation/pika/pull/2088)@[baerwang](https://github.com/baerwang)
 
-## bugfix
+## Bugfix
 
 - 修复 pika 在使用 SETRANGE 命令出现 coredump的问题 [#2125](https://github.com/OpenAtomFoundation/pika/issues/2125) @[chejinge](https://github.com/chejinge)
 
@@ -132,7 +240,7 @@
 
 - 实现在 K8s 环境上 Pika 服务的自动注册，在启动时自动注册，从而实现集群的自组织 [#1931](https://github.com/OpenAtomFoundation/pika/pull/1931) @[machinly](https://github.com/machinly)
 
-## bugfix
+## Bugfix
 
 - 减少了 exporter 非必要的日志打印，降低 CPU 利用率 [#1945](https://github.com/OpenAtomFoundation/pika/pull/1945) @[Mixficsol](https://github.com/Mixficsol)
 

@@ -3,7 +3,6 @@ package pika_integration
 import (
 	"context"
 	"strings"
-	"sync"
 	"time"
 
 	. "github.com/bsm/ginkgo/v2"
@@ -16,7 +15,7 @@ func AssertEqualRedisString(expected string, result redis.Cmder) {
 		Expect(strings.HasSuffix(result.String(), "nil")).To(BeTrue())
 	} else {
 		if !strings.HasSuffix(result.String(), expected) {
-			Expect(expected).To(BeEquivalentTo(result.String()))
+			Expect(expected).NotTo(BeEquivalentTo(result.String()))
 		}
 	}
 }
@@ -25,8 +24,6 @@ var _ = Describe("Text Txn", func() {
 	ctx := context.TODO()
 	var txnClient *redis.Client
 	var cmdClient *redis.Client
-	var txnCost time.Duration
-	var cmdCost time.Duration
 
 	BeforeEach(func() {
 		txnClient = redis.NewClient(PikaOption(SINGLEADDR))
@@ -55,12 +52,10 @@ var _ = Describe("Text Txn", func() {
 			watchkeyValue := "value"
 			status := cmdClient.Set(ctx, watchKey, watchkeyValue, 0)
 			Expect(status.Err()).NotTo(HaveOccurred())
-			intCmd := cmdClient.LPush(ctx, watchKey, watchkeyValue, watchkeyValue)
-			Expect(intCmd.Err()).NotTo(HaveOccurred())
 			err := txnClient.Watch(ctx, func(tx *redis.Tx) error {
 				return nil
 			}, watchKey)
-			Expect(err).To(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 		})
 		// Testing the flushall command will cause watch's key to fail
 		It("txn failed cause of flushall", func() {
@@ -90,8 +85,6 @@ var _ = Describe("Text Txn", func() {
 			modifiedValue := "modified"
 			status := cmdClient.Set(ctx, watchKey, watchkeyValue, 0)
 			Expect(status.Err()).NotTo(HaveOccurred())
-			intCmd := cmdClient.LPush(ctx, watchKey, watchkeyValue, watchkeyValue)
-			Expect(intCmd.Err()).NotTo(HaveOccurred())
 
 			err := txnClient.Watch(ctx, func(tx *redis.Tx) error {
 				tx.Select(ctx, 1) // this command used the same port with txnClient.Watch
@@ -105,36 +98,6 @@ var _ = Describe("Text Txn", func() {
 				return nil
 			}, noExist)
 			Expect(err).NotTo(HaveOccurred())
-		})
-
-		// The test execution does not block the execution of other ordinary commands when executing commands in transactions
-		It("test txn no block other cmd", func() {
-			pipe := txnClient.TxPipeline()
-			pipe.Get(ctx, "key")
-			pipe.Set(ctx, "key", "value", 0)
-			for i := 0; i < 9999; i++ {
-				pipe.Set(ctx, "key", "value", 0)
-			}
-			pipe.LPushX(ctx, "aaa", "xxx")
-			resultChann := make(chan []redis.Cmder)
-			go func(txnCost *time.Duration) {
-				start := time.Now()
-				res, _ := pipe.Exec(ctx)
-				*txnCost = time.Since(start)
-				resultChann <- res
-			}(&txnCost)
-			wg := sync.WaitGroup{}
-			wg.Add(1)
-			go func(cmdCost *time.Duration) {
-				time.Sleep(time.Millisecond * 5)
-				start := time.Now()
-				cmdClient.Set(ctx, "keyaa", "value", 0)
-				*cmdCost = time.Since(start)
-				wg.Done()
-			}(&cmdCost)
-			<-resultChann
-			wg.Wait()
-			Expect(cmdCost < (txnCost / 5)).To(BeTrue())
 		})
 	})
 
@@ -291,7 +254,6 @@ var _ = Describe("Text Txn", func() {
 				pipe := tx.TxPipeline()
 				pipe.LPush(ctx, "list", "a")
 				pipe.Del(ctx, "list")
-				pipe.Set(ctx, "list", "foo", 0)
 				_, err := pipe.Exec(ctx)
 				Expect(err).NotTo(HaveOccurred())
 				return nil

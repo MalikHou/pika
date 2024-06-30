@@ -95,20 +95,11 @@ bool DB::IsKeyScaning() {
 
 void DB::RunKeyScan() {
   Status s;
-  std::vector<storage::KeyInfo> new_key_infos(5);
+  std::vector<storage::KeyInfo> new_key_infos;
 
   InitKeyScan();
   std::shared_lock l(dbs_rw_);
-  std::vector<storage::KeyInfo> tmp_key_infos;
-  s = GetKeyNum(&tmp_key_infos);
-  if (s.ok()) {
-    for (size_t idx = 0; idx < tmp_key_infos.size(); ++idx) {
-      new_key_infos[idx].keys += tmp_key_infos[idx].keys;
-      new_key_infos[idx].expires += tmp_key_infos[idx].expires;
-      new_key_infos[idx].avg_ttl += tmp_key_infos[idx].avg_ttl;
-      new_key_infos[idx].invaild_keys += tmp_key_infos[idx].invaild_keys;
-    }
-  }
+  s = GetKeyNum(&new_key_infos);
   key_scan_info_.duration = static_cast<int32_t>(time(nullptr) - key_scan_info_.start_time);
 
   std::lock_guard lm(key_scan_protector_);
@@ -196,11 +187,12 @@ void DB::SetCompactRangeOptions(const bool is_canceled) {
 }
 
 DisplayCacheInfo DB::GetCacheInfo() {
-  std::lock_guard l(key_info_protector_);
+  std::lock_guard l(cache_info_rwlock_);
   return cache_info_;
 }
 
 bool DB::FlushDBWithoutLock() {
+  std::lock_guard l(bgsave_protector_);
   if (bgsave_info_.bgsaving) {
     return false;
   }
@@ -222,34 +214,6 @@ bool DB::FlushDBWithoutLock() {
   assert(s.ok());
   LOG(INFO) << db_name_ << " Open new db success";
   g_pika_server->PurgeDir(dbpath);
-  return true;
-}
-
-bool DB::FlushSubDBWithoutLock(const std::string& db_name) {
-  std::lock_guard l(bgsave_protector_);
-  if (bgsave_info_.bgsaving) {
-    return false;
-  }
-
-  LOG(INFO) << db_name_ << " Delete old " + db_name + " db...";
-  storage_.reset();
-
-  std::string dbpath = db_path_;
-  if (dbpath[dbpath.length() - 1] != '/') {
-    dbpath.append("/");
-  }
-
-  std::string sub_dbpath = dbpath + db_name;
-  std::string del_dbpath = dbpath + db_name + "_deleting";
-  pstd::RenameFile(sub_dbpath, del_dbpath);
-
-  storage_ = std::make_shared<storage::Storage>(g_pika_conf->db_instance_num(),
-      g_pika_conf->default_slot_num(), g_pika_conf->classic_mode());
-  rocksdb::Status s = storage_->Open(g_pika_server->storage_options(), db_path_);
-  assert(storage_);
-  assert(s.ok());
-  LOG(INFO) << db_name_ << " open new " + db_name + " db success";
-  g_pika_server->PurgeDir(del_dbpath);
   return true;
 }
 
@@ -575,11 +539,6 @@ void DB::ClearBgsave() {
   bgsave_info_.Clear();
 }
 
-bool DB::FlushSubDB(const std::string& db_name) {
-  std::lock_guard rwl(dbs_rw_);
-  return FlushSubDBWithoutLock(db_name);
-}
-
 void DB::UpdateCacheInfo(CacheInfo& cache_info) {
   std::unique_lock<std::shared_mutex> lock(cache_info_rwlock_);
 
@@ -627,10 +586,4 @@ void DB::ResetDisplayCacheInfo(int status) {
   cache_info_.load_keys_per_sec = 0;
   cache_info_.waitting_load_keys_num = 0;
   cache_usage_ = 0;
-}
-
-bool DB::FlushDB() {
-  std::lock_guard rwl(dbs_rw_);
-  std::lock_guard l(bgsave_protector_);
-  return FlushDBWithoutLock();
 }
