@@ -46,7 +46,7 @@ PikaServer::PikaServer()
       last_check_compact_time_({0, 0}),
       last_check_resume_time_({0, 0}),
       repl_state_(PIKA_REPL_NO_CONNECT),
-      role_(PIKA_ROLE_SINGLE) {
+      role_(PIKA_ROLE_SINGLE), pprof_running_(false) {
   // Init server ip host
   if (!ServerInit()) {
     LOG(FATAL) << "ServerInit iotcl error";
@@ -1575,6 +1575,14 @@ void PikaServer::DisableCompact() {
       db_item.second->SetCompactRangeOptions(true);
       db_item.second->DBUnlock();
   }
+}
+
+bool PikaServer::SetProfRunStatus() {
+  return pprof_running_.test_and_set();
+}
+
+void PikaServer::SetProfStopStatus() {
+  pprof_running_.clear();
 }
 
 void DoBgslotscleanup(void* arg) {

@@ -59,6 +59,7 @@ const std::string kCmdNameDisableWal = "disablewal";
 const std::string kCmdNameLastSave = "lastsave";
 const std::string kCmdNameCache = "cache";
 const std::string kCmdNameClearCache = "clearcache";
+const std::string kCmdNameProf = "pprof";
 
 // Migrate slot
 const std::string kCmdNameSlotsMgrtSlot = "slotsmgrtslot";

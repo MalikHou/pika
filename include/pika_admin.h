@@ -595,6 +595,26 @@ class ClearCacheCmd : public Cmd {
   void DoInitial() override;
 };
 
+class ProfCmd : public Cmd {
+ public:
+  ProfCmd(const std::string& name, int arity, uint32_t flag)
+      : Cmd(name, arity, flag, static_cast<uint32_t>(AclCategory::ADMIN)) {}
+  void Do() override;
+  void Split(const HintKeys& hint_keys) override {};
+  void Merge() override {};
+  Cmd* Clone() override { return new ProfCmd(*this); }
+
+ private:
+  void DoInitial() override;
+  void Clear() override {
+    cmd_.clear();
+    path_.clear();
+  }
+  std::string cmd_;
+  std::string path_;
+  int64_t dump_seconds_;
+};
+
 #ifdef WITH_COMMAND_DOCS
 class CommandCmd : public Cmd {
  public:

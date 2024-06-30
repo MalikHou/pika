@@ -494,6 +494,13 @@ class PikaServer : public pstd::noncopyable {
    */
   int64_t GetLastSave() const {return lastsave_;}
   void UpdateLastSave(int64_t lastsave) {lastsave_ = lastsave;}
+
+  /*
+   * pprof used
+   */
+  bool SetProfRunStatus();
+  void SetProfStopStatus();
+
  private:
   /*
    * TimingTask use
@@ -627,6 +634,11 @@ class PikaServer : public pstd::noncopyable {
    * acl
    */
   std::unique_ptr<::Acl> acl_ = nullptr;
+
+  /*
+   * pprof
+   */
+  std::atomic_flag pprof_running_ = ATOMIC_FLAG_INIT;
 };
 
 #endif

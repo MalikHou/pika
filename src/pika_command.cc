@@ -145,6 +145,10 @@ void InitCmdTable(CmdTable* cmd_table) {
       std::make_unique<DiskRecoveryCmd>(kCmdNameDiskRecovery, 1, kCmdFlagsRead | kCmdFlagsAdmin | kCmdFlagsSlow);
   cmd_table->insert(std::pair<std::string, std::unique_ptr<Cmd>>(kCmdNameDiskRecovery, std::move(diskrecoveryptr)));
 
+  std::unique_ptr<Cmd> profptr =
+      std::make_unique<ProfCmd>(kCmdNameProf, 3, kCmdFlagsRead | kCmdFlagsAdmin | kCmdFlagsSlow);
+  cmd_table->insert(std::pair<std::string, std::unique_ptr<Cmd>>(kCmdNameProf, std::move(profptr)));
+
   std::unique_ptr<Cmd> clearreplicationidptr = std::make_unique<ClearReplicationIDCmd>(
       kCmdNameClearReplicationID, 1, kCmdFlagsWrite | kCmdFlagsAdmin | kCmdFlagsSlow);
   cmd_table->insert(

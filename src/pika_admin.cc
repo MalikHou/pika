@@ -13,6 +13,7 @@
 #include <unordered_map>
 
 #include <glog/logging.h>
+#include <gperftools/profiler.h>
 
 #include "include/build_version.h"
 #include "include/pika_cmd_table_manager.h"
@@ -3356,6 +3357,50 @@ void ClearCacheCmd::Do() {
     g_pika_server->ClearCacheDbAsync(db_);
   }
   res_.SetRes(CmdRes::kOk, "Cache is cleared");
+}
+
+void ProfCmd::DoInitial() {
+  if (!CheckArg(argv_.size())) {
+    res_.SetRes(CmdRes::kWrongNum, kCmdNameProf);
+    return;
+  }
+
+  int64_t dump_seconds;
+  if (!argv_[3].empty() && !pstd::string2int(argv_[3].c_str(), argv_[3].size(), &dump_seconds)) {
+    res_.SetRes(CmdRes::kInvalidInt, kCmdNameProf);
+    return;
+  }
+
+  cmd_ = argv_[1];
+  path_ = argv_[2];
+  if (path_.empty()) {
+
+  }
+  dump_seconds_ = dump_seconds;
+}
+
+void ProfCmd::Do() {
+  if (strcasecmp(cmd_.data(), "start") == 0) {
+    if (!g_pika_server->SetProfRunStatus()) {
+      res_.SetRes(CmdRes::kErrOther, "profile is running");
+      return;
+    }
+    ProfilerStart(path_.data());
+    res_.SetRes(CmdRes::kOk, "profile file start dump");
+    if (dump_seconds_ > 0) {
+      std::this_thread::sleep_for(std::chrono::seconds(dump_seconds_));
+      ProfilerStop();
+      g_pika_server->SetProfStopStatus();
+      res_.SetRes(CmdRes::kOk, "profile dump fin!");
+    }
+  } else if (strcasecmp(cmd_.data(), "end") == 0) {
+    ProfilerStop();
+    g_pika_server->SetProfStopStatus();
+    res_.SetRes(CmdRes::kOk, "profile dump fin!");
+  } else {
+    res_.SetRes(CmdRes::kNotFound, cmd_);
+  }
+  return;
 }
 
 #ifdef WITH_COMMAND_DOCS
