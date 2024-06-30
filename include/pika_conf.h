@@ -627,6 +627,11 @@ public:
     TryPushDiffCommands("disable_auto_compactions", value);
     disable_auto_compactions_ = value == "true";
   }
+  void SetMaxSubcompactions(const int& value) {
+    std::lock_guard l(rwlock_);
+    TryPushDiffCommands("max-subcompactions", std::to_string(value));
+    max_subcompactions_ = value;
+  }
   void SetLeastResumeFreeDiskSize(const int64_t& value) {
     std::lock_guard l(rwlock_);
     TryPushDiffCommands("least-free-disk-resume-size", std::to_string(value));
@@ -669,6 +674,26 @@ public:
     std::lock_guard l(rwlock_);
     TryPushDiffCommands("write-buffer-size", std::to_string(value));
     write_buffer_size_ = value;
+  }
+  void SetMinWriteBufferNumberToMerge(const int& value) {
+    std::lock_guard l(rwlock_);
+    TryPushDiffCommands("min-write-buffer-number-to-merge", std::to_string(value));
+    min_write_buffer_number_to_merge_ = value;
+  }
+  void SetLevel0StopWritesTrigger(const int& value) {
+    std::lock_guard l(rwlock_);
+    TryPushDiffCommands("level0-stop-writes-trigger", std::to_string(value));
+    level0_stop_writes_trigger_ = value;
+  }
+  void SetLevel0SlowdownWritesTrigger(const int& value) {
+    std::lock_guard l(rwlock_);
+    TryPushDiffCommands("level0-slowdown-writes-trigger", std::to_string(value));
+    level0_slowdown_writes_trigger_ = value;
+  }
+  void SetLevel0FileNumCompactionTrigger(const int& value) {
+    std::lock_guard l(rwlock_);
+    TryPushDiffCommands("level0-file-num-compaction-trigger", std::to_string(value));
+    level0_file_num_compaction_trigger_ = value;
   }
   void SetMaxWriteBufferNumber(const int& value) {
     std::lock_guard l(rwlock_);
@@ -783,6 +808,10 @@ public:
   int64_t thread_migrate_keys_num_ = 0;
   int64_t max_write_buffer_size_ = 0;
   int max_write_buffer_num_ = 0;
+  int min_write_buffer_number_to_merge_ = 1;
+  int level0_stop_writes_trigger_ =  36;
+  int level0_slowdown_writes_trigger_ = 20;
+  int level0_file_num_compaction_trigger_ = 4;
   int64_t max_client_response_size_ = 0;
   bool daemonize_ = false;
   int timeout_ = 0;
